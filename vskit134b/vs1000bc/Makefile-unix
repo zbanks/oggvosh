@@ -1,0 +1,22 @@
+.SUFFIXES: .img .bin
+
+VS1000LIB = lib
+INCDIRS = -I . -I $(VS1000LIB)
+LIBDIRS = -L . -L $(VS1000LIB)
+LIBS  = -lc -ldev1000
+VCC   = vcc
+FEATURES = 
+VCCFLAGS = -P130 -g -O -fsmall-code $(FEATURES)
+ASMFLAGS = -D ASM $(FEATURES)
+
+.c.o:
+	$(VCC) $(VCCFLAGS) $(INCDIRS) -o $@ $<
+
+.s.o:
+	vsa $(ASMFLAGS) $(INCDIRS) -o $@ $<
+
+.bin.img: Makefile
+	./coff2BoOt -c 2 -w 50 -x 0x50 $< $@
+
+.o.bin:
+	vslink -k -m mem_user -o $@ $(VS1000LIB)/c-nand.o $< $(VS1000LIB)/rom1000.o $(LIBDIRS) $(LIBS)

@@ -1,0 +1,1 @@
+/tmp/oggvosh/vskit134b/vs1000bc/nokia.c

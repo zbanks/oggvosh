@@ -1,0 +1,4 @@
+Due to vsli's strange set of tools, it is hard to organize the repo.
+
+nokia.c - Main code that uses the nokia 6100 display from sparkfun.
+playloop.c - USB Bootloader that loads .OGV file

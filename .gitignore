@@ -1,0 +1,9 @@
+nf_*.img
+NAND.IMG
+VS1000*.RUN
+*.rec
+*.prg
+*.run
+*.rpc
+a_out*
+a.out

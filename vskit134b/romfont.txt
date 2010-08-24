@@ -1,0 +1,504 @@
+
+EMBEDDED ROM FONT FOR GRAPHICAL DISPLAYS
+
+The VS1000A contains an embedded ROM font that helps interfacing
+with graphical displays that don't contain an embedded alphanumeric
+font. Example on how to use the font can be seen in the example
+file display.c.
+
+
+The font contains variable widht ASCII characters 32..127, fixed
+width 'half-widht' katakana characters, fixed width numerical
+characters and some special symbols.
+
+The font pixel data is stored in u_int16[] array fontData.
+The low 8 bits contain the ASCII proportional font and variable width symbols.
+The high 8 bits contain the fixed width katakana, numeric and symbol font.
+
+u_int16[] array fontPtrs contains pointers to the staring offsets of the
+variable width characters. 
+
+Example:
+To find pixel data for the ASCII character 'A' (value 65 decimal):
+- subtract 32 from 65
+
+- look up starting index for character 'A' from fontPtrs:
+> fontPtrs['A'-32] == fontPtrs[65-32] == fontPtrs[33] == 128.
+
+- look up starting index for the next character from fontPtrs:
+> fontPtrs[34] == 133 --> this means that character 'B' starts from index 133
+  so character 'A' ends at at the previous index, 132.
+
+- Now we know that pixels for 'A' are from fontData[128] to fontData[132].
+  The pixels are in the low 8 bits.
+
+
+
+Finding the pixel data for the fixed-width characters is much simpler
+because each character takes 5 bytes, so the pixel data for character i is at:
+
+    fontData[i+0] >> 8
+and fontData[i+1] >> 8
+and fontData[i+2] >> 8
+and fontData[i+3] >> 8
+and fontData[i+4] >> 8
+
+The file display.c contains an example for a character drawing function
+and a character mapping function.
+
+
+
+
+
+
+
+The following bit map illustrates the contents of the fontData table:
+
+
+
+fontData[0] ==   0x0000                        fontPtrs[0] (' ')
+fontData[1] ==   0x0000             _______________________
+fontData[2] ==   0x005F               # #####  fontPtrs[1] ('!')
+fontData[3] ==   0x005F             __#_#####______________
+fontData[4] ==   0x0007  __________       OOO  fontPtrs[2] ('"')
+fontData[5] ==   0x7000    ###               
+fontData[6] ==   0x5007    # #      ______OOO______________
+fontData[7] ==   0x7014    ###          # #    fontPtrs[3] ('#')
+fontData[8] ==   0x007F               #######
+fontData[9] ==   0x0014  __________     # #  
+fontData[10] ==  0x0014                 # #  
+fontData[11] ==  0x007F               #######
+fontData[12] ==  0x0F14       OOOO  ____#_#________________
+fontData[13] ==  0x0104          O        O    fontPtrs[4] ('$')
+fontData[14] ==  0x012A  ________O_    O O O 
+fontData[15] ==  0x406B    #          OO O OO
+fontData[16] ==  0x406B    #          OO O OO
+fontData[17] ==  0x782A    ####        O O O 
+fontData[18] ==  0x0010             ____O__________________
+fontData[19] ==  0x0032  __________    ##  #   fontPtrs[5] ('%')
+fontData[20] ==  0x1018      O          ##   
+fontData[21] ==  0x200C     O            ##  
+fontData[22] ==  0x4006    O              ## 
+fontData[23] ==  0x0013             ____#__##______________
+fontData[24] ==  0x0020  __________    O       fontPtrs[6] ('&')
+fontData[25] ==  0x0056               O O OO 
+fontData[26] ==  0x1849      ##       O  O  O
+fontData[27] ==  0x1855      ##       O O O O
+fontData[28] ==  0x0022                O   O 
+fontData[29] ==  0x0050  __________ __O_O__________________
+fontData[30] ==  0x0A03       O O          ##  fontPtrs[7] (''')
+fontData[31] ==  0x0A01       O O   ________#______________
+fontData[32] ==  0x4A1C    O  O O       OOO    fontPtrs[8] ('(')
+fontData[33] ==  0x2A22     O O O      O   O 
+fontData[34] ==  0x1E41  ____OOOO__ __O_____O______________
+fontData[35] ==  0x0441        #      #     #  fontPtrs[9] (')')
+fontData[36] ==  0x4422    #   #       #   # 
+fontData[37] ==  0x341C     ## #    ____###________________
+fontData[38] ==  0x142A      # #       O O O   fontPtrs[10] ('*')
+fontData[39] ==  0x0C1C  _____##___     OOO  
+fontData[40] ==  0x203E     O          OOOOO 
+fontData[41] ==  0x101C      O          OOO  
+fontData[42] ==  0x782A    OOOO     ___O_O_O_______________
+fontData[43] ==  0x0408        O         #     fontPtrs[11] ('+')
+fontData[44] ==  0x0008  __________      #   
+fontData[45] ==  0x183E      ##        ##### 
+fontData[46] ==  0x0808       #          #   
+fontData[47] ==  0x4C08    #  ##    _____#_________________
+fontData[48] ==  0x4860    #  #       OO       fontPtrs[12] (',')
+fontData[49] ==  0x3830  ___###____ ___OO__________________
+fontData[50] ==  0x4808    O  O          #     fontPtrs[13] ('-')
+fontData[51] ==  0x4808    O  O          #   
+fontData[52] ==  0x7808    OOOO          #   
+fontData[53] ==  0x4808    O  O     _____#_________________
+fontData[54] ==  0x4860  __O__O____   OO       fontPtrs[14] ('.')
+fontData[55] ==  0x4860    #  #     __OO___________________
+fontData[56] ==  0x2840     # #       #        fontPtrs[15] ('/')
+fontData[57] ==  0x1820      ##        #     
+fontData[58] ==  0x7C10    #####        #    
+fontData[59] ==  0x0808  _____#____      #   
+fontData[60] ==  0x0804       O           #  
+fontData[61] ==  0x7C02    OOOOO           # 
+fontData[62] ==  0x0801       O     ________#______________
+fontData[63] ==  0x283E     O O        OOOOO   fontPtrs[16] ('0')
+fontData[64] ==  0x1841  ____OO____   O     O
+fontData[65] ==  0x4041    #          O     O
+fontData[66] ==  0x483E    #  #     ___OOOOO_______________
+fontData[67] ==  0x4800    #  #                fontPtrs[17] ('1')
+fontData[68] ==  0x7842    ####       #    # 
+fontData[69] ==  0x407F  __#_______   #######
+fontData[70] ==  0x5440    O O O    __#____________________
+fontData[71] ==  0x5462    O O O      OO   O   fontPtrs[18] ('2')
+fontData[72] ==  0x5451    O O O      O O   O
+fontData[73] ==  0x7C49    OOOOO      O  O  O
+fontData[74] ==  0x0046  __________ __O___OO_______________
+fontData[75] ==  0x1822      ##        #   #   fontPtrs[19] ('3')
+fontData[76] ==  0x0049               #  #  #
+fontData[77] ==  0x5849    # ##       #  #  #
+fontData[78] ==  0x4036    #        ___##_##_______________
+fontData[79] ==  0x3818  ___###____     OO     fontPtrs[20] ('4')
+fontData[80] ==  0x1014      O          O O  
+fontData[81] ==  0x1012      O          O  O 
+fontData[82] ==  0x107F      O      __OOOOOOO______________
+fontData[83] ==  0x102F      O         # ####  fontPtrs[21] ('5')
+fontData[84] ==  0x1049  ____O_____   #  #  #
+fontData[85] ==  0x0149          #    #  #  #
+fontData[86] ==  0x4131    #     #  ___##___#______________
+fontData[87] ==  0x3D3E     #### #     OOOOO   fontPtrs[22] ('6')
+fontData[88] ==  0x0949       #  #    O  O  O
+fontData[89] ==  0x0749  ______###_   O  O  O
+fontData[90] ==  0x1032      O      ___OO__O_______________
+fontData[91] ==  0x0801       O             #  fontPtrs[23] ('7')
+fontData[92] ==  0x7C79    OOOOO      ####  #
+fontData[93] ==  0x0205         O         # #
+fontData[94] ==  0x0103  ________O_ _______##______________
+fontData[95] ==  0x0E36       ###      OO OO   fontPtrs[24] ('8')
+fontData[96] ==  0x0249         #     O  O  O
+fontData[97] ==  0x4349    #    ##    O  O  O
+fontData[98] ==  0x2236     #   #   ___OO_OO_______________
+fontData[99] ==  0x1E26  ____####__    #  ##   fontPtrs[25] ('9')
+fontData[100] == 0x4449    O   O      #  #  #
+fontData[101] == 0x4449    O   O      #  #  #
+fontData[102] == 0x7C3E    OOOOO    ___#####_______________
+fontData[103] == 0x4414    O   O        O O    fontPtrs[26] (':')
+fontData[104] == 0x4414  __O___O___ ____O_O________________
+fontData[105] == 0x2214     #   #       # #    fontPtrs[27] (';')
+fontData[106] == 0x1234      #  #   ___##_#________________
+fontData[107] == 0x0A08       # #        O     fontPtrs[28] ('<')
+fontData[108] == 0x7F14    #######      O O  
+fontData[109] == 0x0222  _______#__ ___O___O_______________
+fontData[110] == 0x4214    O    O       # #    fontPtrs[29] ('=')
+fontData[111] == 0x3F14     OOOOOO      # #  
+fontData[112] == 0x0214         O       # #  
+fontData[113] == 0x4214    O    O   ____#_#________________
+fontData[114] == 0x3E22  ___OOOOO__    O   O   fontPtrs[30] ('>')
+fontData[115] == 0x0A14       # #       O O  
+fontData[116] == 0x0A08       # #   _____O_________________
+fontData[117] == 0x7F02    #######         #   fontPtrs[31] ('?')
+fontData[118] == 0x0A01       # #           #
+fontData[119] == 0x0A59  _____#_#__   # ##  #
+fontData[120] == 0x0805       O           # #
+fontData[121] == 0x4602    O   OO   _______#_______________
+fontData[122] == 0x423E    O    O      OOOOO   fontPtrs[32] ('@')
+fontData[123] == 0x2241     O   O     O     O
+fontData[124] == 0x1E49  ____OOOO__   O  O  O
+fontData[125] == 0x0455        #      O O O O
+fontData[126] == 0x0359         ##    O OO  O
+fontData[127] == 0x422E    #    #   ___O_OOO_______________
+fontData[128] == 0x3E7C     #####     #####    fontPtrs[33] ('A')
+fontData[129] == 0x020A  _______#__      # # 
+fontData[130] == 0x4209    O    O        #  #
+fontData[131] == 0x420A    O    O        # # 
+fontData[132] == 0x427C    O    O   __#####________________
+fontData[133] == 0x427F    O    O     OOOOOOO  fontPtrs[34] ('B')
+fontData[134] == 0x7E49  __OOOOOO__   O  O  O
+fontData[135] == 0x0249         #     O  O  O
+fontData[136] == 0x4F49    #  ####    O  O  O
+fontData[137] == 0x2236     #   #   ___OO_OO_______________
+fontData[138] == 0x1F1C      #####      ###    fontPtrs[35] ('C')
+fontData[139] == 0x0222  _______#__    #   # 
+fontData[140] == 0x4A41    O  O O     #     #
+fontData[141] == 0x4A41    O  O O     #     #
+fontData[142] == 0x4022    O        ___#___#_______________
+fontData[143] == 0x207F     O         OOOOOOO  fontPtrs[36] ('D')
+fontData[144] == 0x1C41  ____OOO___   O     O
+fontData[145] == 0x4241    #    #     O     O
+fontData[146] == 0x2222     #   #      O   O 
+fontData[147] == 0x121C      #  #   ____OOO________________
+fontData[148] == 0x2A7F     # # #     #######  fontPtrs[37] ('E')
+fontData[149] == 0x4649  __#___##__   #  #  #
+fontData[150] == 0x0249         O     #  #  #
+fontData[151] == 0x3F49     OOOOOO    #  #  #
+fontData[152] == 0x4241    O    O   __#_____#______________
+fontData[153] == 0x4A7F    O  O O     OOOOOOO  fontPtrs[38] ('F')
+fontData[154] == 0x4609  __O___OO__      O  O
+fontData[155] == 0x0609        ##        O  O
+fontData[156] == 0x4809    #  #          O  O
+fontData[157] == 0x4001    #        ________O______________
+fontData[158] == 0x201C     #           ###    fontPtrs[39] ('G')
+fontData[159] == 0x1E22  ____####__    #   # 
+fontData[160] == 0x0849       O       #  #  #
+fontData[161] == 0x4649    O   OO     #  #  #
+fontData[162] == 0x4A3A    O  O O   ___###_#_______________
+fontData[163] == 0x327F     OO  O     OOOOOOO  fontPtrs[40] ('H')
+fontData[164] == 0x1E08  ____OOOO__      O   
+fontData[165] == 0x0A08       # #        O   
+fontData[166] == 0x4A08    #  # #        O   
+fontData[167] == 0x3E7F     #####   __OOOOOOO______________
+fontData[168] == 0x0941       #  #    #     #  fontPtrs[41] ('I')
+fontData[169] == 0x087F  _____#____   #######
+fontData[170] == 0x0641        OO   __#_____#______________
+fontData[171] == 0x0020                O       fontPtrs[42] ('J')
+fontData[172] == 0x4640    O   OO     O      
+fontData[173] == 0x2040     O         O      
+fontData[174] == 0x1E20  ____OOOO__    O     
+fontData[175] == 0x041F        #    ____OOOOO______________
+fontData[176] == 0x457F    #   # #    #######  fontPtrs[43] ('K')
+fontData[177] == 0x3D08     #### #       #   
+fontData[178] == 0x0514        # #      # #  
+fontData[179] == 0x0422  ______#___    #   # 
+fontData[180] == 0x0041             __#_____#______________
+fontData[181] == 0x7F7F    OOOOOOO    OOOOOOO  fontPtrs[44] ('L')
+fontData[182] == 0x0840       O       O      
+fontData[183] == 0x1040      O        O      
+fontData[184] == 0x0040  __________   O      
+fontData[185] == 0x4440    #   #    __O____________________
+fontData[186] == 0x247F     #  #      #######  fontPtrs[45] ('M')
+fontData[187] == 0x1F02      #####         # 
+fontData[188] == 0x0404        #          #  
+fontData[189] == 0x0408  ______#___      #   
+fontData[190] == 0x4004    O              #  
+fontData[191] == 0x4202    O    O          # 
+fontData[192] == 0x427F    O    O   __#######______________
+fontData[193] == 0x427F    O    O     OOOOOOO  fontPtrs[46] ('N')
+fontData[194] == 0x4004  __O_______       O  
+fontData[195] == 0x4208    #    #        O   
+fontData[196] == 0x2A10     # # #       O    
+fontData[197] == 0x127F      #  #   __OOOOOOO______________
+fontData[198] == 0x2A1C     # # #       ###    fontPtrs[47] ('O')
+fontData[199] == 0x0622  ______##__    #   # 
+fontData[200] == 0x2241     O   O     #     #
+fontData[201] == 0x1241      O  O     #     #
+fontData[202] == 0x7B22    OOOO OO     #   # 
+fontData[203] == 0x161C      O OO   ____###________________
+fontData[204] == 0x227F  ___O___O__   OOOOOOO  fontPtrs[48] ('P')
+fontData[205] == 0x0009                  O  O
+fontData[206] == 0x4009    #             O  O
+fontData[207] == 0x2009     #            O  O
+fontData[208] == 0x1F06      #####  ______OO_______________
+fontData[209] == 0x001C  __________     ###    fontPtrs[49] ('Q')
+fontData[210] == 0x7822    OOOO        #   # 
+fontData[211] == 0x0051               # #   #
+fontData[212] == 0x0261         O     ##    #
+fontData[213] == 0x04BE        O    _#_#####_______________
+fontData[214] == 0x787F  __OOOO____   OOOOOOO  fontPtrs[50] ('R')
+fontData[215] == 0x3F09     ######       O  O
+fontData[216] == 0x4419    #   #        OO  O
+fontData[217] == 0x4429    #   #       O O  O
+fontData[218] == 0x4446    #   #    __O___OO_______________
+fontData[219] == 0x4426  __#___#___    #  ##   fontPtrs[51] ('S')
+fontData[220] == 0x0249         O     #  #  #
+fontData[221] == 0x4249    O    O     #  #  #
+fontData[222] == 0x4249    O    O     #  #  #
+fontData[223] == 0x2232     O   O   ___##__#_______________
+fontData[224] == 0x1E01  ____OOOO__         O  fontPtrs[52] ('T')
+fontData[225] == 0x0401        #            O
+fontData[226] == 0x027F         #     OOOOOOO
+fontData[227] == 0x0401        #            O
+fontData[228] == 0x0801       #     ________O______________
+fontData[229] == 0x303F  ___##_____    ######  fontPtrs[53] ('U')
+fontData[230] == 0x3240     OO  O     #      
+fontData[231] == 0x0240         O     #      
+fontData[232] == 0x7F40    OOOOOOO    #      
+fontData[233] == 0x023F         O   ___######______________
+fontData[234] == 0x320F  ___OO__O__      OOOO  fontPtrs[54] ('V')
+fontData[235] == 0x0230         #      OO    
+fontData[236] == 0x1240      #  #     O      
+fontData[237] == 0x2230     #   #      OO    
+fontData[238] == 0x520F    # #  #   _____OOOO______________
+fontData[239] == 0x0E7F  _____###__   #######  fontPtrs[55] ('W')
+fontData[240] == 0x0020                #     
+fontData[241] == 0x2A18     O O O       ##   
+fontData[242] == 0x2A20     O O O      #     
+fontData[243] == 0x2A7F     O O O   __#######______________
+fontData[244] == 0x4063  __O_______   OO   OO  fontPtrs[56] ('X')
+fontData[245] == 0x3814     ###         O O  
+fontData[246] == 0x2408     #  #         O   
+fontData[247] == 0x2214     #   #       O O  
+fontData[248] == 0x2063     #       __OO___OO______________
+fontData[249] == 0x7003  __###_____        ##  fontPtrs[57] ('Y')
+fontData[250] == 0x4004    O              #  
+fontData[251] == 0x2878     O O       ####   
+fontData[252] == 0x1004      O            #  
+fontData[253] == 0x2803     O O     _______##______________
+fontData[254] == 0x0661  ______OO__   OO    O  fontPtrs[58] ('Z')
+fontData[255] == 0x0A51       # #     O O   O
+fontData[256] == 0x3E49     #####     O  O  O
+fontData[257] == 0x4A45    #  # #     O   O O
+fontData[258] == 0x4A43    #  # #   __O____OO______________
+fontData[259] == 0x4A7F  __#__#_#__   #######  fontPtrs[59] ('[')
+fontData[260] == 0x0441        O    __#_____#______________
+fontData[261] == 0x7F01    OOOOOOO          O  fontPtrs[60] ('\')
+fontData[262] == 0x0402        O           O 
+fontData[263] == 0x1404      O O          O  
+fontData[264] == 0x0C08  _____OO___      O   
+fontData[265] == 0x4010    #            O    
+fontData[266] == 0x4220    #    #      O     
+fontData[267] == 0x4240    #    #   __O____________________
+fontData[268] == 0x7E41    ######     #     #  fontPtrs[61] (']')
+fontData[269] == 0x407F  __#_______ __#######______________
+fontData[270] == 0x4A04    O  O O         O    fontPtrs[62] ('^')
+fontData[271] == 0x4A02    O  O O          O 
+fontData[272] == 0x4A01    O  O O           O
+fontData[273] == 0x4A02    O  O O          O 
+fontData[274] == 0x7E04  __OOOOOO__ ______O________________
+fontData[275] == 0x0480        #     #         fontPtrs[63] ('_')
+fontData[276] == 0x0580        # #   #       
+fontData[277] == 0x4580    #   # #   #       
+fontData[278] == 0x2580     #  # #   #       
+fontData[279] == 0x1C80  ____###___ _#_____________________
+fontData[280] == 0x0F01       OOOO          O  fontPtrs[64] ('`')
+fontData[281] == 0x4003    O               OO
+fontData[282] == 0x2003     O       _______OO______________
+fontData[283] == 0x1F20      OOOOO     #       fontPtrs[65] ('a')
+fontData[284] == 0x0054  __________   # # #  
+fontData[285] == 0x7C54    #####      # # #  
+fontData[286] == 0x0078             __####_________________
+fontData[287] == 0x7E7F    ######     OOOOOOO  fontPtrs[66] ('b')
+fontData[288] == 0x4044    #          O   O  
+fontData[289] == 0x3044  ___##_____   O   O  
+fontData[290] == 0x7E38    OOOOOO   ___OOO_________________
+fontData[291] == 0x4038    O           ###     fontPtrs[67] ('c')
+fontData[292] == 0x2044     O         #   #  
+fontData[293] == 0x1044      O        #   #  
+fontData[294] == 0x0828  _____O____ ___#_#_________________
+fontData[295] == 0x7E38    ######      OOO     fontPtrs[68] ('d')
+fontData[296] == 0x4244    #    #     O   O  
+fontData[297] == 0x4244    #    #     O   O  
+fontData[298] == 0x427F    #    #   __OOOOOOO______________
+fontData[299] == 0x7E38  __######__    ###     fontPtrs[69] ('e')
+fontData[300] == 0x0E54       OOO     # # #  
+fontData[301] == 0x0254         O     # # #  
+fontData[302] == 0x4218    O    O   ____##_________________
+fontData[303] == 0x2200     O   O              fontPtrs[70] ('f')
+fontData[304] == 0x1E88  ____OOOO__  O   O   
+fontData[305] == 0x427E    #    #     OOOOOO 
+fontData[306] == 0x4209    #    #   _____O__O______________
+fontData[307] == 0x4018    #            ##     fontPtrs[71] ('g')
+fontData[308] == 0x20A4     #        # #  #  
+fontData[309] == 0x18A4  ____##____  # #  #  
+fontData[310] == 0x0278         O   __####_________________
+fontData[311] == 0x047F        O      OOOOOOO  fontPtrs[72] ('h')
+fontData[312] == 0x0104          O        O  
+fontData[313] == 0x0204         O         O  
+fontData[314] == 0x0078  __________ __OOOO_________________
+fontData[315] == 0x0744        ###    #   #    fontPtrs[73] ('i')
+fontData[316] == 0x057D        # #    ##### #
+fontData[317] == 0x0740        ###  __#____________________
+fontData[318] == 0x0080              O         fontPtrs[74] ('j')
+fontData[319] == 0x0084  __________  O    O  
+fontData[320] == 0x367D     OO OO   __OOOOO_O______________
+fontData[321] == 0x417F    O     O    #######  fontPtrs[75] ('k')
+fontData[322] == 0x4110    O     O      #    
+fontData[323] == 0x4128    O     O     # #   
+fontData[324] == 0x3644  ___OO_OO__ __#___#________________
+fontData[325] == 0x003F                OOOOOO  fontPtrs[76] ('l')
+fontData[326] == 0x0040               O      
+fontData[327] == 0x0040             __O____________________
+fontData[328] == 0x007C               #####    fontPtrs[77] ('m')
+fontData[329] == 0x3604  ___##_##__       #  
+fontData[330] == 0x3078     OO        ####   
+fontData[331] == 0x4904    O  O  O        #  
+fontData[332] == 0x4978    O  O  O  __####_________________
+fontData[333] == 0x497C    O  O  O    OOOOO    fontPtrs[78] ('n')
+fontData[334] == 0x0604  ______OO__       O  
+fontData[335] == 0x0004                   O  
+fontData[336] == 0x4978    #  #  #  __OOOO_________________
+fontData[337] == 0x4938    #  #  #     ###     fontPtrs[79] ('o')
+fontData[338] == 0x4944    #  #  #    #   #  
+fontData[339] == 0x3644  ___##_##__   #   #  
+fontData[340] == 0x0638        OO   ___###_________________
+fontData[341] == 0x08FC       O      OOOOOO    fontPtrs[80] ('p')
+fontData[342] == 0x0824       O        O  O  
+fontData[343] == 0x0824       O        O  O  
+fontData[344] == 0x3618  ___OO_OO__ ____OO_________________
+fontData[345] == 0x0618        ##       ##     fontPtrs[81] ('q')
+fontData[346] == 0x4924    #  #  #     #  #  
+fontData[347] == 0x4924    #  #  #     #  #  
+fontData[348] == 0x49FC    #  #  #  _######________________
+fontData[349] == 0x307C  ___##_____   OOOOO    fontPtrs[82] ('r')
+fontData[350] == 0x3604     OO OO         O  
+fontData[351] == 0x4904    O  O  O        O  
+fontData[352] == 0x4908    O  O  O  _____O_________________
+fontData[353] == 0x4948    O  O  O    #  #     fontPtrs[83] ('s')
+fontData[354] == 0x3054  ___OO_____   # # #  
+fontData[355] == 0x0054               # # #  
+fontData[356] == 0x0124          #  ___#__#________________
+fontData[357] == 0x0104          #        O    fontPtrs[84] ('t')
+fontData[358] == 0x013F          #     OOOOOO
+fontData[359] == 0x3644  ___##_##__ __O___O________________
+fontData[360] == 0x363C     OO OO      ####    fontPtrs[85] ('u')
+fontData[361] == 0x4940    O  O  O    #      
+fontData[362] == 0x4940    O  O  O    #      
+fontData[363] == 0x493C    O  O  O  ___####________________
+fontData[364] == 0x360C  ___OO_OO__      OO    fontPtrs[86] ('v')
+fontData[365] == 0x0630        ##      OO    
+fontData[366] == 0x4940    #  #  #    O      
+fontData[367] == 0x4930    #  #  #     OO    
+fontData[368] == 0x490C    #  #  #  _____OO________________
+fontData[369] == 0x363C  ___##_##__    ####    fontPtrs[87] ('w')
+fontData[370] == 0x6040    OO         #      
+fontData[371] == 0x6038    OO          ###   
+fontData[372] == 0x3F40     OOOOOO    #      
+fontData[373] == 0x023C         O   ___####________________
+fontData[374] == 0x0444  ______O___   O   O    fontPtrs[88] ('x')
+fontData[375] == 0x7F28    #######     O O   
+fontData[376] == 0x3E10     #####       O    
+fontData[377] == 0x1C28      ###       O O   
+fontData[378] == 0x0844       #     __O___O________________
+fontData[379] == 0x001C  __________     ###    fontPtrs[89] ('y')
+fontData[380] == 0x7FA0    OOOOOOO   # #     
+fontData[381] == 0x7FA0    OOOOOOO   # #     
+fontData[382] == 0x007C             __#####________________
+fontData[383] == 0x7F64    OOOOOOO    OO  O    fontPtrs[90] ('z')
+fontData[384] == 0x7F54  __OOOOOOO_   O O O  
+fontData[385] == 0x7F4C    #######    O  OO  
+fontData[386] == 0x7F44    #######  __O___O________________
+fontData[387] == 0x7F00    #######             fontPtrs[91] ('{')
+fontData[388] == 0x7F36    #######     ## ## 
+fontData[389] == 0x7F49  __#######_ __#__#__#______________
+fontData[390] == 0x007F             __OOOOOOO______________  fontPtrs[92] ('|')
+fontData[391] == 0x0000                        fontPtrs[93] ('}')
+fontData[392] == 0x0049               #  #  #
+fontData[393] == 0x0036             ___##_##_______________
+fontData[394] == 0x0008  __________      O     fontPtrs[94] ('~')
+fontData[395] == 0x0008                  O   
+fontData[396] == 0x003E                OOOOO 
+fontData[397] == 0x001C                 OOO  
+fontData[398] == 0x0008             _____O_________________
+fontData[399] == 0x0008  __________      #     fontPtrs[95]
+fontData[400] == 0x001C                 ###  
+fontData[401] == 0x003E                ##### 
+fontData[402] == 0x0008                  #   
+fontData[403] == 0x0008             _____#_________________
+fontData[404] == 0x00FF  __________  OOOOOOOO  fontPtrs[96]
+fontData[405] == 0x0081              O      O
+fontData[406] == 0x007E               OOOOOO 
+fontData[407] == 0x0024                O  O  
+fontData[408] == 0x003C             ___OOOO________________
+fontData[409] == 0x003C  __________    ####    fontPtrs[97]
+fontData[410] == 0x0024                #  #  
+fontData[411] == 0x007E               ###### 
+fontData[412] == 0x0081              #      #
+fontData[413] == 0x00FF             _########______________
+fontData[414] == 0x001C  __________     OOO    fontPtrs[98]
+fontData[415] == 0x001C                 OOO  
+fontData[416] == 0x0008                  O   
+fontData[417] == 0x000C                  OO  
+fontData[418] == 0x001A                 OO O 
+fontData[419] == 0x002B  __________    O O OO
+fontData[420] == 0x006B               OO O OO
+fontData[421] == 0x0068               OO O   
+fontData[422] == 0x0008                  O   
+fontData[423] == 0x001C                 OOO  
+fontData[424] == 0x0008  __________ _____O_________________
+fontData[425] == 0x00F8              #####     fontPtrs[99]
+fontData[426] == 0x008C              #   ##  
+fontData[427] == 0x00AA              # # # # 
+fontData[428] == 0x00A9              # # #  #
+fontData[429] == 0x00A9  __________  # # #  #
+fontData[430] == 0x00A9              # # #  #
+fontData[431] == 0x0089              #   #  #
+fontData[432] == 0x00F9              #####  #
+fontData[433] == 0x0045               #   # #
+fontData[434] == 0x0023  __________    #   ##
+fontData[435] == 0x001F             ____#####______________
+fontData[436] == 0x000C                  OO    fontPtrs[100]
+fontData[437] == 0x004E               O  OOO 
+fontData[438] == 0x00EF              OOO OOOO
+fontData[439] == 0x00E7  __________  OOO  OOO
+fontData[440] == 0x00D8              OO OO   
+fontData[441] == 0x00E7              OOO  OOO
+fontData[442] == 0x00EF              OOO OOOO
+fontData[443] == 0x004E               O  OOO 
+fontData[444] == 0x000C  __________ _____OO________________
+
