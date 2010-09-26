@@ -11,6 +11,7 @@
 #include "codec.h"
 #include "romfont.h"
 #include "usb.h"
+#include "file.c"
 //#include "vectors.h"
 
 #include "menu.c"
@@ -368,17 +369,26 @@ void lcdPutInt(char *x, char *y, register u_int16 value, register u_int16 length
 // Put packed string in Y ram (mainly for file name output)
 void lcdPutPackedStr(char x, char y, __y const char *d, char fg, char bg){
   int i;
-
     for (i=0; i<100; i++){      
       register u_int16 c;
       c=*d++;
       if ((c & 0xff00U) == 0){
 	break;
       }
+    if(c>>8 == '.'){
+    break;
+    }else if(c>>8 == '_'){
+    c ^= 0x7f00;
+    }
       lcdPutChar(&x, &y, c>>8, fg, bg);
       if ((c & 0xffU) == 0){
 	break;
       }
+      if(c & 0xff == '.'){
+    break;
+    }else if(c & 0xff == '_'){
+    c ^= 0x7f;
+    }
       lcdPutChar(&x, &y, c&0xff, fg, bg);
     }  
               
@@ -749,6 +759,29 @@ void MyUiFunc(void){
 void UserInterfaceIdleHook(void); // Prototype of ROM idle hook function
 //u_int16 RealPlayCurrentFile(void);
 
+void drawImage(void){
+    u_int16 cpx;
+    u_int16 data[3];
+    u_int16 i = 40;
+    OpenNamedFile("\pSCREEN  ",FAT_MKID('P','P','M'));
+
+
+    cpx = cpxLCDRect(28, 40, 80, 80);
+    while(cpx){
+        //if(i >= 80){
+        ReadFile(data, 0, 6);
+        i = 0;
+        //}
+        //0bRRRGGGBB
+        //0bRRRxxxxxGGGxxxxxx
+        //0bBBxxxxxxRRRxxxxxx
+        //0bGGGxxxxxBBxxxxxxx
+        lcdData(((data[i] & 0xE000) >> 8) | (data[i] & 0xE0 >> 3) | (data[i+1] >> 14));
+        lcdData((data[i+1] & 0xE0) | ((data[i+2] & 0xE000) >> 11) | (data[i+2] & 0xC0 >> 6));
+        cpx -= 2;
+    }
+  lcdCmd(NOP);
+}
 
 u_int16 MyPlayFile(void){
     //DBG_PUTS("p");
@@ -757,6 +790,7 @@ u_int16 MyPlayFile(void){
     ScreenInit();
     BusyWaitHundreths(50);
     lcdClear(BG_COLOR);
+    //drawImage();
     lcdPutChar(&x, &y, '3', BG_COLOR, 0);
     RealPlayCurrentFile();
     
@@ -809,7 +843,7 @@ void main(void) {
     //lcdPutStr(2, 2, "TEST123!", 0xf7, 0x00);
     //lcdPutStr(2, 10, "This is a long, multi-line test that should determine if the quick brown fox really CAN jump over a lazy dog, or if it is MERELY a typographic test. I can count to 1,234,567,890.0123; can you?", 0xff, 0x80);
   currentKeyMap = myKeyMap;
-  player.volume = 60;
+  player.volume = 80;
   PlayerVolume();
   player.pauseOn = 0;
   
